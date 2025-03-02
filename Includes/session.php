@@ -10,6 +10,7 @@ if (!isset($_SESSION['userId']))
 
 }
 
+// session_destroy();
 // $expiry = 1800 ;//session expiry required after 30 mins
 // if (isset($_SESSION['LAST']) && (time() - $_SESSION['LAST'] > $expiry)) {
 

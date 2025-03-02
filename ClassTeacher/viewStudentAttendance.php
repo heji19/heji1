@@ -162,13 +162,11 @@ include '../Includes/session.php';
                        if($type == "1"){ //All Attendance
 
                         $query = "SELECT tblattendance.Id,tblattendance.status,tblattendance.dateTimeTaken,tblclass.className,
-                        tblclassarms.classArmName,tblsessionterm.sessionName,tblsessionterm.termId,tblterm.termName,
+                        tblclassarms.classArmName,
                         tblstudents.firstName,tblstudents.lastName,tblstudents.otherName,tblstudents.admissionNumber
                         FROM tblattendance
                         INNER JOIN tblclass ON tblclass.Id = tblattendance.classId
                         INNER JOIN tblclassarms ON tblclassarms.Id = tblattendance.classArmId
-                        INNER JOIN tblsessionterm ON tblsessionterm.Id = tblattendance.sessionTermId
-                        INNER JOIN tblterm ON tblterm.Id = tblsessionterm.termId
                         INNER JOIN tblstudents ON tblstudents.admissionNumber = tblattendance.admissionNo
                         where tblattendance.admissionNo = '$admissionNumber' and tblattendance.classId = '$_SESSION[classId]' and tblattendance.classArmId = '$_SESSION[classArmId]'";
 
@@ -178,13 +176,11 @@ include '../Includes/session.php';
                         $singleDate =  $_POST['singleDate'];
 
                          $query = "SELECT tblattendance.Id,tblattendance.status,tblattendance.dateTimeTaken,tblclass.className,
-                        tblclassarms.classArmName,tblsessionterm.sessionName,tblsessionterm.termId,tblterm.termName,
+                        tblclassarms.classArmName,
                         tblstudents.firstName,tblstudents.lastName,tblstudents.otherName,tblstudents.admissionNumber
                         FROM tblattendance
                         INNER JOIN tblclass ON tblclass.Id = tblattendance.classId
                         INNER JOIN tblclassarms ON tblclassarms.Id = tblattendance.classArmId
-                        INNER JOIN tblsessionterm ON tblsessionterm.Id = tblattendance.sessionTermId
-                        INNER JOIN tblterm ON tblterm.Id = tblsessionterm.termId
                         INNER JOIN tblstudents ON tblstudents.admissionNumber = tblattendance.admissionNo
                         where tblattendance.dateTimeTaken = '$singleDate' and tblattendance.admissionNo = '$admissionNumber' and tblattendance.classId = '$_SESSION[classId]' and tblattendance.classArmId = '$_SESSION[classArmId]'";
                         
@@ -196,13 +192,11 @@ include '../Includes/session.php';
                          $toDate =  $_POST['toDate'];
 
                          $query = "SELECT tblattendance.Id,tblattendance.status,tblattendance.dateTimeTaken,tblclass.className,
-                        tblclassarms.classArmName,tblsessionterm.sessionName,tblsessionterm.termId,tblterm.termName,
+                        tblclassarms.classArmName,
                         tblstudents.firstName,tblstudents.lastName,tblstudents.otherName,tblstudents.admissionNumber
                         FROM tblattendance
                         INNER JOIN tblclass ON tblclass.Id = tblattendance.classId
                         INNER JOIN tblclassarms ON tblclassarms.Id = tblattendance.classArmId
-                        INNER JOIN tblsessionterm ON tblsessionterm.Id = tblattendance.sessionTermId
-                        INNER JOIN tblterm ON tblterm.Id = tblsessionterm.termId
                         INNER JOIN tblstudents ON tblstudents.admissionNumber = tblattendance.admissionNo
                         where tblattendance.dateTimeTaken between '$fromDate' and '$toDate' and tblattendance.admissionNo = '$admissionNumber' and tblattendance.classId = '$_SESSION[classId]' and tblattendance.classArmId = '$_SESSION[classArmId]'";
                         

@@ -38,25 +38,64 @@ include '../Includes/session.php';
                                     AND status = '1'");
       $count = mysqli_num_rows($qurty);
   
-      if($count > 0){
-          echo "<div class='alert alert-danger' style='margin-right:700px;'>Attendance has already been taken today!</div>";
-      } else {
-          foreach ($check as $studentLrn) {
-              // Insert attendance record or update if exists
-              $sql = "INSERT INTO tblattendance (Lrn, classId, classArmId, dateTimeTaken, status) 
-                      VALUES ('$studentLrn', '$_SESSION[classId]', '$_SESSION[classArmId]', '$dateTaken', '1')
-                      ON DUPLICATE KEY UPDATE status='1'";
-  
-              $qquery = mysqli_query($conn, $sql);
-  
-              if (!$qquery) {
-                  echo "<div class='alert alert-danger' style='margin-right:700px;'>Error: " . mysqli_error($conn) . "</div>";
-              }
+
+      foreach ($check as $admissionNumber) {
+          // Insert attendance record or update if exists
+          $sql = "INSERT INTO tblattendance (admissionNo, classId, classArmId, dateTimeTaken, status) 
+                  VALUES ('$admissionNumber', '$_SESSION[classId]', '$_SESSION[classArmId]', '$dateTaken', '1')
+                  ON DUPLICATE KEY UPDATE status='1'";
+
+          $qquery = mysqli_query($conn, $sql);
+
+          if (!$qquery) {
+              echo "<div class='alert alert-danger' style='margin-right:700px;'>Error: " . mysqli_error($conn) . "</div>";
           }
-  
-          echo "<div class='alert alert-success' style='margin-right:700px;'>Attendance Taken Successfully!</div>";
       }
+
+      // echo "<div class='alert alert-success' style='margin-right:700px;'>Attendance Taken Successfully!</div>";
+      
   }
+
+  if(isset($_POST['lock'])){
+    
+    $dateTaken = date("Y-m-d"); // Define today's date
+    $classId = $_SESSION['classId'];
+    $classArmId = $_SESSION['classArmId'];
+
+    if (!$conn) {
+        die("Database connection error: " . mysqli_connect_error());
+    }
+    $query = "SELECT admissionNumber FROM tblstudents 
+              WHERE classId = '$classId' 
+              AND classArmId = '$classArmId' 
+              AND admissionNumber NOT IN (
+                  SELECT admissionNo FROM tblattendance 
+                  WHERE classId = '$classId' 
+                  AND classArmId = '$classArmId' 
+                  AND dateTimeTaken = '$dateTaken'
+              )";
+
+    $result = mysqli_query($conn, $query);
+
+    if (!$result) {
+        die("<div class='alert alert-danger'>Error fetching students: " . mysqli_error($conn) . "</div>");
+    }
+    while ($row = mysqli_fetch_assoc($result)) {
+        $admissionNumber = $row['admissionNumber'];
+
+        $sql = "INSERT INTO tblattendance (admissionNo, classId, classArmId, dateTimeTaken, status) 
+                VALUES ('$admissionNumber', '$classId', '$classArmId', '$dateTaken', '2')";
+
+        $insertQuery = mysqli_query($conn, $sql);
+
+        if (!$insertQuery) {
+            echo "<div class='alert alert-danger'>Error inserting absent student: " . mysqli_error($conn) . "</div>";
+        }
+    }
+
+    echo "<div class='alert alert-success'>Absent students recorded successfully!</div>";
+    
+}
   
 
 
@@ -64,38 +103,25 @@ include '../Includes/session.php';
 $dateTaken = date("Y-m-d"); // Format: YYYY-MM-DD
   $qurty=mysqli_query($conn,"select * from tblattendance  where classId = '$_SESSION[classId]' and classArmId = '$_SESSION[classArmId]' and dateTimeTaken='$dateTaken' and status = '1'");
   $count = mysqli_num_rows($qurty);
-
-  if($count > 0){
-
-      $statusMsg = "<div class='alert alert-danger' style='margin-right:700px;'>Attendance has been taken for today!</div>";
-
-  }
-
-    else //update the status to 1 for the checkboxes checked
-    {
-
-        for($i = 0; $i < $N; $i++)
-        {
-                $Lrn[$i]; //admission Number
-
-                if(isset($check[$i])) //the checked checkboxes
-                {
-                  $qquery=mysqli_query($conn, "UPDATE tblattendance SET status='1' WHERE Lrn='$check[$i]'");
+  $statusMsg = "<div></div>";
+  for($i = 0; $i < $count; $i++)
+  {
+          // $Lrn[$i]; //admission Number
+          if(isset($check[$i])) //the checked checkboxes
+          {
+            $qquery=mysqli_query($conn, "UPDATE tblattendance SET status='1' WHERE admissionNo='$check[$i]'");
 
 
-                      if ($qquery) {
-                          $statusMsg = "<div class='alert alert-success'  style='margin-right:700px;'>Attendance Taken Successfully!</div>";
-                      }
-                      else
-                      {
-                          $statusMsg = "<div class='alert alert-danger' style='margin-right:700px;'>An error Occurred!</div>";
-                      }
-                  
+                if ($qquery) {
+                    $statusMsg = "<div class='alert alert-success'  style='margin-right:700px;'>Attendance Taken Successfully!</div>";
                 }
+                else
+                {
+                    $statusMsg = "<div class='alert alert-danger' style='margin-right:700px;'>An error Occurred!</div>";
+                }
+            
           }
-      }
-
-   
+    }
 
 ?>
 
@@ -185,7 +211,7 @@ $dateTaken = date("Y-m-d"); // Format: YYYY-MM-DD
                         <th>First Name</th>
                         <th>Last Name</th>
                         <th>Other Name</th>
-                        <th>Lrn</th>
+                        <th>Admission Number</th>
                         <th>Class</th>
                         <th>Class Arm</th>
                         <th>Check</th>
@@ -195,12 +221,20 @@ $dateTaken = date("Y-m-d"); // Format: YYYY-MM-DD
                     <tbody>
 
                   <?php
-                      $query = "SELECT tblstudents.Id,tblstudents.Lrn,tblclass.className,tblclass.Id As classId,tblclassarms.classArmName,tblclassarms.Id AS classArmId,tblstudents.firstName,
-                      tblstudents.lastName,tblstudents.otherName,tblstudents.Lrn,tblstudents.dateCreated
+                      $dateTaken = date("Y-m-d");
+                      echo "<script>console.log('Error: " . $dateTaken . "');</script>";
+                      $query = "SELECT tblstudents.Id, tblstudents.admissionNumber, tblclass.className, 
+                      tblclass.Id AS classId, tblclassarms.classArmName, 
+                      tblclassarms.Id AS classArmId, tblstudents.firstName, 
+                      tblstudents.lastName, tblstudents.otherName, tblstudents.dateCreated
                       FROM tblstudents
                       INNER JOIN tblclass ON tblclass.Id = tblstudents.classId
                       INNER JOIN tblclassarms ON tblclassarms.Id = tblstudents.classArmId
-                      where tblstudents.classId = '$_SESSION[classId]' and tblstudents.classArmId = '$_SESSION[classArmId]'";
+                      LEFT JOIN tblattendance ON tblattendance.admissionNo = tblstudents.admissionNumber 
+                              AND tblattendance.dateTimeTaken = '$dateTaken'
+                      where tblstudents.classId = '$_SESSION[classId]' AND 
+                      tblstudents.classArmId = '$_SESSION[classArmId]' AND 
+                      tblattendance.admissionNo IS NULL";
                       $rs = $conn->query($query);
                       $num = $rs->num_rows;
                       $sn=0;
@@ -216,12 +250,12 @@ $dateTaken = date("Y-m-d"); // Format: YYYY-MM-DD
                                 <td>".$rows['firstName']."</td>
                                 <td>".$rows['lastName']."</td>
                                 <td>".$rows['otherName']."</td>
-                                <td>".$rows['Lrn']."</td>
+                                <td>".$rows['admissionNumber']."</td>
                                 <td>".$rows['className']."</td>
                                 <td>".$rows['classArmName']."</td>
-                                <td><input name='check[]' type='checkbox' value=".$rows['Lrn']." class='form-control'></td>
+                                <td><input name='check[]' type='checkbox' value=".$rows['admissionNumber']." class='form-control'></td>
                               </tr>";
-                              echo "<input name='Lrn[]' value=".$rows['Lrn']." type='hidden' class='form-control'>";
+                              echo "<input name='admissionNumber[]' value=".$rows['admissionNumber']." type='hidden' class='form-control'>";
                           }
                       }
                       else
@@ -237,6 +271,7 @@ $dateTaken = date("Y-m-d"); // Format: YYYY-MM-DD
                   </table>
                   <br>
                   <button type="submit" name="save" class="btn btn-primary">Take Attendance</button>
+                  <button type="submit" name="lock" class="btn btn-danger">Lock Attendance</button>
                   </form>
                 </div>
               </div>

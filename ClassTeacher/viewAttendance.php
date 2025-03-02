@@ -85,11 +85,11 @@ include '../Includes/session.php';
                         <th>First Name</th>
                         <th>Last Name</th>
                         <th>Other Name</th>
-                        <th>Admission No</th>
+                        <!-- <th>Admission No</th> -->
                         <th>Class</th>
-                        <th>Class Arm</th>
-                        <th>Session</th>
-                        <th>Term</th>
+                        <th>Section</th>
+                        <!-- <th>Session</th> -->
+                        <!-- <th>Term</th> -->
                         <th>Status</th>
                         <th>Date</th>
                       </tr>
@@ -100,17 +100,13 @@ include '../Includes/session.php';
                   <?php
 
                     if(isset($_POST['view'])){
-
                       $dateTaken =  $_POST['dateTaken'];
 
                       $query = "SELECT tblattendance.Id,tblattendance.status,tblattendance.dateTimeTaken,tblclass.className,
-                      tblclassarms.classArmName,tblsessionterm.sessionName,tblsessionterm.termId,tblterm.termName,
-                      tblstudents.firstName,tblstudents.lastName,tblstudents.otherName,tblstudents.admissionNumber
+                      tblclassarms.classArmName, tblstudents.firstName,tblstudents.lastName,tblstudents.otherName
                       FROM tblattendance
                       INNER JOIN tblclass ON tblclass.Id = tblattendance.classId
                       INNER JOIN tblclassarms ON tblclassarms.Id = tblattendance.classArmId
-                      INNER JOIN tblsessionterm ON tblsessionterm.Id = tblattendance.sessionTermId
-                      INNER JOIN tblterm ON tblterm.Id = tblsessionterm.termId
                       INNER JOIN tblstudents ON tblstudents.admissionNumber = tblattendance.admissionNo
                       where tblattendance.dateTimeTaken = '$dateTaken' and tblattendance.classId = '$_SESSION[classId]' and tblattendance.classArmId = '$_SESSION[classArmId]'";
                       $rs = $conn->query($query);
@@ -129,11 +125,8 @@ include '../Includes/session.php';
                                  <td>".$rows['firstName']."</td>
                                 <td>".$rows['lastName']."</td>
                                 <td>".$rows['otherName']."</td>
-                                <td>".$rows['admissionNumber']."</td>
                                 <td>".$rows['className']."</td>
                                 <td>".$rows['classArmName']."</td>
-                                <td>".$rows['sessionName']."</td>
-                                <td>".$rows['termName']."</td>
                                 <td style='background-color:".$colour."'>".$status."</td>
                                 <td>".$rows['dateTimeTaken']."</td>
                               </tr>";
