@@ -44,11 +44,11 @@ include '../Includes/session.php';
       
       $lateTime = "14:39:00"; // Define the threshold time for being late
       
-      foreach ($check as $admissionNumber) {
+      foreach ($check as $Lrn) {
           $status = (strtotime($timeTaken) > strtotime($lateTime)) ? 3 : 1;
       
-          $sql = "INSERT INTO tblattendance (admissionNo, classId, classArmId, dateTimeTaken, status) 
-                  VALUES ('$admissionNumber', '$_SESSION[classId]', '$_SESSION[classArmId]', '$dateTimeTaken', '$status')
+          $sql = "INSERT INTO tblattendance (Lrn, classId, classArmId, dateTimeTaken, status) 
+                  VALUES ('$Lrn', '$_SESSION[classId]', '$_SESSION[classArmId]', '$dateTimeTaken', '$status')
                   ON DUPLICATE KEY UPDATE status='$status'";
       
           $qquery = mysqli_query($conn, $sql);
@@ -74,11 +74,11 @@ include '../Includes/session.php';
         die("Database connection error: " . mysqli_connect_error());
     }
 
-    $query = "SELECT admissionNumber FROM tblstudents 
+    $query = "SELECT Lrn FROM tblstudents 
               WHERE classId = '$classId' 
               AND classArmId = '$classArmId' 
-              AND admissionNumber NOT IN (
-                  SELECT admissionNo FROM tblattendance 
+              AND Lrn NOT IN (
+                  SELECT Lrn FROM tblattendance 
                   WHERE classId = '$classId' 
                   AND classArmId = '$classArmId' 
                   AND DATE(dateTimeTaken) = '$onlyDate'
@@ -91,10 +91,10 @@ include '../Includes/session.php';
         die("<div class='alert alert-danger'>Error fetching students: " . mysqli_error($conn) . "</div>");
     }
     while ($row = mysqli_fetch_assoc($result)) {
-        $admissionNumber = $row['admissionNumber'];
+        $Lrn = $row['Lrn'];
 
-        $sql = "INSERT INTO tblattendance (admissionNo, classId, classArmId, dateTimeTaken, status) 
-                VALUES ('$admissionNumber', '$classId', '$classArmId', '$dateTaken', '2')";
+        $sql = "INSERT INTO tblattendance (Lrn, classId, classArmId, dateTimeTaken, status) 
+                VALUES ('$Lrn', '$classId', '$classArmId', '$dateTaken', '2')";
 
         $insertQuery = mysqli_query($conn, $sql);
 
@@ -119,7 +119,7 @@ include '../Includes/session.php';
           // $Lrn[$i]; //admission Number
           if(isset($check[$i])) //the checked checkboxes
           {
-            $qquery=mysqli_query($conn, "UPDATE tblattendance SET status='1' WHERE admissionNo='$check[$i]'");
+            $qquery=mysqli_query($conn, "UPDATE tblattendance SET status='1' WHERE Lrn='$check[$i]'");
 
 
                 if ($qquery) {
@@ -173,131 +173,7 @@ include '../Includes/session.php';
         xmlhttp.open("GET","ajaxClassArms2.php?cid="+str,true);
         xmlhttp.send();
     }
-  }
-
-    async function callFastAPI(attendanceData) {
-      const apiUrl = "http://127.0.0.1:8000/detect-face/"; 
-
-      const params = new URLSearchParams(attendanceData).toString();
-      const fullUrl = `${apiUrl}?${params}`;
-
-      try {
-          const response = await fetch(fullUrl, {
-              method: "GET",
-              headers: {
-                  "Content-Type": "application/json",
-              },
-          });
-
-          const result = await response.json();
-          handleFastAPIResponse(result); 
-      } catch (error) {
-          console.error("Error calling FastAPI:", error);
-          showNotification("Server Error", "Could not connect to the FastAPI server.", "danger");
-      }
-  }
-
-
-  function handleFastAPIResponse(response) {
-    console.log("Response from FastAPI:", response);
-
-    if (response.status === "success") {
-        const admissionNumber = response.student_id; 
-
-        // Get current time
-        const now = new Date();
-        const dateTimeTaken = now.toISOString().slice(0, 19).replace("T", " "); // "YYYY-MM-DD HH:MM:SS"
-        const dateTaken = now.toISOString().slice(0, 10); // "YYYY-MM-DD"
-        const timeTaken = now.toTimeString().slice(0, 8); // "HH:MM:SS"
-
-        // Late threshold time (Adjust based on school rules)
-        const lateTime = "14:39:00";
-        const status = timeTaken > lateTime ? 3 : 1;
-
-        // Call PHP script to update the database
-        fetch("record_attendance.php", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
-            body: `admissionNumber=${admissionNumber}&dateTimeTaken=${dateTimeTaken}&status=${status}`
-        })
-        .then(response => response.text())
-        .then(data => {
-            console.log("Server Response:", data);
-            showNotification("Attendance Recorded", `Student ID: ${admissionNumber} - Status: ${status == 1 ? "Present" : "Late"}`, "success");
-            document.getElementById("statusMsg").innerHTML = `<div class='alert alert-success'>Attendance recorded successfully for Student ${admissionNumber}!</div>`;
-        })
-          .catch(error => {
-              console.error("Error updating attendance:", error);
-              document.getElementById("statusMsg").innerHTML = `<div class='alert alert-danger'>Error updating attendance.</div>`;
-          });
-
-      } else if (response.status === "failed") {
-          document.getElementById("statusMsg").innerHTML = `<div class='alert alert-danger'>No Match Found!</div>`;
-      } else {
-          document.getElementById("statusMsg").innerHTML = `<div class='alert alert-danger'>An error occurred!</div>`;
-      }
-  }
-
-
-
-    function showNotification(title, message, type) {
-        const notification = document.createElement("div");
-        notification.className = `alert alert-${type}`;
-        notification.innerHTML = `<strong>${title}:</strong> ${message}`;
-        notification.style.position = "fixed";
-        notification.style.top = "20px";
-        notification.style.right = "20px";
-        notification.style.zIndex = "9999";
-        notification.style.padding = "10px";
-        notification.style.borderRadius = "5px";
-        notification.style.boxShadow = "0px 0px 10px rgba(0, 0, 0, 0.2)";
-        
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.remove();
-        }, 5000);
-    }
-
-    document.addEventListener("DOMContentLoaded", function () {
-    const form = document.forms["attendanceForm"]; // Get form by name
-
-    if (!form) {
-        console.error("Form not found!");
-        return; 
-    }
-
-        form.addEventListener("submit", function (event) {
-            const clickedButton = event.submitter; 
-
-            console.log("Clicked button:", clickedButton ? clickedButton.name : "None"); // Debugging
-
-            if (clickedButton && clickedButton.name === "photo") {
-                event.preventDefault(); 
-                console.log("Photo attendance button clicked!"); // Ensure this appears in the console
-
-                const formData = new FormData(form);
-                const attendanceData = {
-                    students: [],
-                    classId: "<?php echo $_SESSION['classId']; ?>",
-                    classArmId: "<?php echo $_SESSION['classArmId']; ?>",
-                    dateTaken: "<?php echo date('Y-m-d'); ?>",
-                };
-
-                formData.getAll("check[]").forEach(admissionNumber => {
-                    attendanceData.students.push({
-                        admissionNumber: admissionNumber,
-                        status: 1, 
-                    });
-                });
-
-                console.log("Sending data to FastAPI:", attendanceData); // Debugging
-                callFastAPI(attendanceData); 
-            }
-        });
-    });
+}
 </script>
 </head>
 
@@ -328,7 +204,7 @@ include '../Includes/session.php';
 
 
               <!-- Input Group -->
-        <form method="post" name="attendanceForm">
+        <form method="post">
             <div class="row">
               <div class="col-lg-12">
               <div class="card mb-4">
@@ -337,7 +213,7 @@ include '../Includes/session.php';
                   <h6 class="m-0 font-weight-bold text-danger">Note: <i>Click on the checkboxes besides each student to take attendance!</i></h6>
                 </div>
                 <div class="table-responsive p-3">
-                <div id="statusMsg"><?php echo $statusMsg; ?></div>
+                <?php echo $statusMsg;?>
                   <table class="table align-items-center table-flush table-hover">
                     <thead class="thead-light">
                       <tr>
@@ -345,7 +221,7 @@ include '../Includes/session.php';
                         <th>First Name</th>
                         <th>Last Name</th>
                         <th>Other Name</th>
-                        <th>Admission Number</th>
+                        <th>Lrn</th>
                         <th>Class</th>
                         <th>Class Arm</th>
                         <th>Check</th>
@@ -356,18 +232,18 @@ include '../Includes/session.php';
 
                   <?php
                       $dateTaken = date("Y-m-d"); // Format: 2025-03-02 (Only Date)
-                      $query = "SELECT tblstudents.Id, tblstudents.admissionNumber, tblclass.className, 
+                      $query = "SELECT tblstudents.Id, tblstudents.Lrn, tblclass.className, 
                                        tblclass.Id AS classId, tblclassarms.classArmName, 
                                        tblclassarms.Id AS classArmId, tblstudents.firstName, 
                                        tblstudents.lastName, tblstudents.otherName, tblstudents.dateCreated
                                 FROM tblstudents
                                 INNER JOIN tblclass ON tblclass.Id = tblstudents.classId
                                 INNER JOIN tblclassarms ON tblclassarms.Id = tblstudents.classArmId
-                                LEFT JOIN tblattendance ON tblattendance.admissionNo = tblstudents.admissionNumber 
+                                LEFT JOIN tblattendance ON tblattendance.Lrn = tblstudents.Lrn 
                                                          AND DATE(tblattendance.dateTimeTaken) = '$dateTaken'
                                 WHERE tblstudents.classId = '$_SESSION[classId]' 
                                 AND tblstudents.classArmId = '$_SESSION[classArmId]' 
-                                AND tblattendance.admissionNo IS NULL";
+                                AND tblattendance.Lrn IS NULL";
                       
                       $rs = $conn->query($query);
                       $num = $rs->num_rows;                      
@@ -384,12 +260,12 @@ include '../Includes/session.php';
                                 <td>".$rows['firstName']."</td>
                                 <td>".$rows['lastName']."</td>
                                 <td>".$rows['otherName']."</td>
-                                <td>".$rows['admissionNumber']."</td>
+                                <td>".$rows['Lrn']."</td>
                                 <td>".$rows['className']."</td>
                                 <td>".$rows['classArmName']."</td>
-                                <td><input name='check[]' type='checkbox' value=".$rows['admissionNumber']." class='form-control'></td>
+                                <td><input name='check[]' type='checkbox' value=".$rows['Lrn']." class='form-control'></td>
                               </tr>";
-                              echo "<input name='admissionNumber[]' value=".$rows['admissionNumber']." type='hidden' class='form-control'>";
+                              echo "<input name='Lrn[]' value=".$rows['Lrn']." type='hidden' class='form-control'>";
                           }
                       }
                       else
@@ -405,7 +281,6 @@ include '../Includes/session.php';
                   </table>
                   <br>
                   <button type="submit" name="save" class="btn btn-primary">Take Attendance</button>
-                  <button type="submit" name="photo" class="btn btn-primary">Photo Attendance</button>
                   <button type="submit" name="lock" class="btn btn-danger">Lock Attendance</button>
                   </form>
                 </div>

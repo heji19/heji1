@@ -88,10 +88,10 @@ include '../Includes/session.php';
                         $result = $conn->query($qry);
                         $num = $result->num_rows;		
                         if ($num > 0){
-                          echo ' <select required name="admissionNumber" class="form-control mb-3">';
+                          echo ' <select required name="Lrn" class="form-control mb-3">';
                           echo'<option value="">--Select Student--</option>';
                           while ($rows = $result->fetch_assoc()){
-                          echo'<option value="'.$rows['admissionNumber'].'" >'.$rows['firstName'].' '.$rows['lastName'].'</option>';
+                          echo'<option value="'.$rows['Lrn'].'" >'.$rows['firstName'].' '.$rows['lastName'].'</option>';
                               }
                                   echo '</select>';
                               }
@@ -140,7 +140,7 @@ include '../Includes/session.php';
                         <th>First Name</th>
                         <th>Last Name</th>
                         <th>Other Name</th>
-                        <th>Admission No</th>
+                        <th>Lrn</th>
                         <th>Class</th>
                         <th>Class Arm</th>
                         <th>Session</th>
@@ -156,19 +156,19 @@ include '../Includes/session.php';
 
                     if(isset($_POST['view'])){
 
-                       $admissionNumber =  $_POST['admissionNumber'];
+                       $Lrn =  $_POST['Lrn'];
                        $type =  $_POST['type'];
 
                        if($type == "1"){ //All Attendance
 
                         $query = "SELECT tblattendance.Id,tblattendance.status,tblattendance.dateTimeTaken,tblclass.className,
                         tblclassarms.classArmName,
-                        tblstudents.firstName,tblstudents.lastName,tblstudents.otherName,tblstudents.admissionNumber
+                        tblstudents.firstName,tblstudents.lastName,tblstudents.otherName,tblstudents.Lrn
                         FROM tblattendance
                         INNER JOIN tblclass ON tblclass.Id = tblattendance.classId
                         INNER JOIN tblclassarms ON tblclassarms.Id = tblattendance.classArmId
-                        INNER JOIN tblstudents ON tblstudents.admissionNumber = tblattendance.admissionNo
-                        where tblattendance.admissionNo = '$admissionNumber' and tblattendance.classId = '$_SESSION[classId]' and tblattendance.classArmId = '$_SESSION[classArmId]'";
+                        INNER JOIN tblstudents ON tblstudents.Lrn = tblattendance.Lrn
+                        where tblattendance.Lrn = '$Lrn' and tblattendance.classId = '$_SESSION[classId]' and tblattendance.classArmId = '$_SESSION[classArmId]'";
 
                        }
                        if($type == "2"){ //Single Date Attendance
@@ -177,13 +177,13 @@ include '../Includes/session.php';
 
                         $query = "SELECT tblattendance.Id, tblattendance.status, tblattendance.dateTimeTaken, 
                                          tblclass.className, tblclassarms.classArmName,
-                                         tblstudents.firstName, tblstudents.lastName, tblstudents.otherName, tblstudents.admissionNumber
+                                         tblstudents.firstName, tblstudents.lastName, tblstudents.otherName, tblstudents.Lrn
                                   FROM tblattendance
                                   INNER JOIN tblclass ON tblclass.Id = tblattendance.classId
                                   INNER JOIN tblclassarms ON tblclassarms.Id = tblattendance.classArmId
-                                  INNER JOIN tblstudents ON tblstudents.admissionNumber = tblattendance.admissionNo
+                                  INNER JOIN tblstudents ON tblstudents.Lrn = tblattendance.Lrn
                                   WHERE DATE(tblattendance.dateTimeTaken) = '$singleDate' 
-                                  AND tblattendance.admissionNo = '$admissionNumber' 
+                                  AND tblattendance.Lrn = '$Lrn' 
                                   AND tblattendance.classId = '$_SESSION[classId]' 
                                   AND tblattendance.classArmId = '$_SESSION[classArmId]'";
                         
@@ -198,13 +198,13 @@ include '../Includes/session.php';
                         
                         $query = "SELECT tblattendance.Id, tblattendance.status, tblattendance.dateTimeTaken, 
                                          tblclass.className, tblclassarms.classArmName,
-                                         tblstudents.firstName, tblstudents.lastName, tblstudents.otherName, tblstudents.admissionNumber
+                                         tblstudents.firstName, tblstudents.lastName, tblstudents.otherName, tblstudents.Lrn
                                   FROM tblattendance
                                   INNER JOIN tblclass ON tblclass.Id = tblattendance.classId
                                   INNER JOIN tblclassarms ON tblclassarms.Id = tblattendance.classArmId
-                                  INNER JOIN tblstudents ON tblstudents.admissionNumber = tblattendance.admissionNo
+                                  INNER JOIN tblstudents ON tblstudents.Lrn = tblattendance.Lrn
                                   WHERE DATE(tblattendance.dateTimeTaken) BETWEEN '$fromDate' AND '$toDate'
-                                  AND tblattendance.admissionNo = '$admissionNumber' 
+                                  AND tblattendance.Lrn = '$Lrn' 
                                   AND tblattendance.classId = '$_SESSION[classId]' 
                                   AND tblattendance.classArmId = '$_SESSION[classArmId]'";
                        }
@@ -225,7 +225,7 @@ include '../Includes/session.php';
                                  <td>".$rows['firstName']."</td>
                                 <td>".$rows['lastName']."</td>
                                 <td>".$rows['otherName']."</td>
-                                <td>".$rows['admissionNumber']."</td>
+                                <td>".$rows['Lrn']."</td>
                                 <td>".$rows['className']."</td>
                                 <td>".$rows['classArmName']."</td>
                                 <td>".$rows['sessionName']."</td>

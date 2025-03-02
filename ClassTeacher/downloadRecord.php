@@ -46,7 +46,7 @@ echo '
 <td>'.$firstName= $row['firstName'].'</td> 
 <td>'.$lastName= $row['lastName'].'</td> 
 <td>'.$otherName= $row['otherName'].'</td> 
-<td>'.$admissionNumber= $row['Lrn'].'</td> 
+<td>'.$Lrn= $row['Lrn'].'</td> 
 <td>'.$className= $row['className'].'</td> 
 <td>'.$classArmName=$row['classArmName'].'</td>	
 <td>'.$status=$status.'</td>	 	

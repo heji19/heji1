@@ -50,7 +50,7 @@ INSERT INTO `tbladmin` (`Id`, `firstName`, `lastName`, `emailAddress`, `password
 
 CREATE TABLE `tblattendance` (
   `Id` int(10) NOT NULL,
-  `admissionNo` varchar(255) NOT NULL,
+  `Lrn` varchar(255) NOT NULL,
   `classId` varchar(10) NOT NULL,
   `classArmId` varchar(10) NOT NULL,
   `sessionTermId` varchar(10) NOT NULL,
@@ -62,7 +62,7 @@ CREATE TABLE `tblattendance` (
 -- Dumping data for table `tblattendance`
 --
 
-INSERT INTO `tblattendance` (`Id`, `admissionNo`, `classId`, `classArmId`, `status`, `dateTimeTaken`) VALUES
+INSERT INTO `tblattendance` (`Id`, `Lrn`, `classId`, `classArmId`, `status`, `dateTimeTaken`) VALUES
 (162, 'ASDFLKJ', '1', '2', '1', '2020-11-01'),
 (163, 'HSKSDD', '1', '2', '1', '2020-11-01'),
 (164, 'JSLDKJ', '1', '2', '1', '2020-11-01'),
@@ -186,7 +186,7 @@ CREATE TABLE `tblstudents` (
   `firstName` varchar(255) NOT NULL,
   `lastName` varchar(255) NOT NULL,
   `otherName` varchar(255) NOT NULL,
-  `admissionNumber` varchar(255) NOT NULL,
+  `Lrn` varchar(255) NOT NULL,
   `password` varchar(50) NOT NULL,
   `classId` varchar(10) NOT NULL,
   `classArmId` varchar(10) NOT NULL,
@@ -197,7 +197,7 @@ CREATE TABLE `tblstudents` (
 -- Dumping data for table `tblstudents`
 --
 
-INSERT INTO `tblstudents` (`Id`, `firstName`, `lastName`, `otherName`, `admissionNumber`, `password`, `classId`, `classArmId`, `dateCreated`) VALUES
+INSERT INTO `tblstudents` (`Id`, `firstName`, `lastName`, `otherName`, `Lrn`, `password`, `classId`, `classArmId`, `dateCreated`) VALUES
 (1, 'Thomas', 'Omari', 'none', 'AMS005', '12345', '1', '2', '2022-10-31'),
 (3, 'Samuel', 'Ondieki', 'none', 'AMS007', '12345', '1', '2', '2022-10-31'),
 (4, 'Milagros', 'Oloo', 'none', 'AMS011', '12345', '1', '2', '2022-10-31'),

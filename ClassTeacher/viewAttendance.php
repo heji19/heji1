@@ -85,7 +85,7 @@ include '../Includes/session.php';
                         <th>First Name</th>
                         <th>Last Name</th>
                         <th>Other Name</th>
-                        <!-- <th>Admission No</th> -->
+                        <th>LRN</th>
                         <th>Class</th>
                         <th>Section</th>
                         <!-- <th>Session</th> -->
@@ -107,7 +107,7 @@ include '../Includes/session.php';
                                 FROM tblattendance
                                 INNER JOIN tblclass ON tblclass.Id = tblattendance.classId
                                 INNER JOIN tblclassarms ON tblclassarms.Id = tblattendance.classArmId
-                                INNER JOIN tblstudents ON tblstudents.admissionNumber = tblattendance.admissionNo
+                                INNER JOIN tblstudents ON tblstudents.Lrn = tblattendance.Lrn
                                 WHERE DATE(tblattendance.dateTimeTaken) = '$dateTaken' 
                                 AND tblattendance.classId = '$_SESSION[classId]' 
                                 AND tblattendance.classArmId = '$_SESSION[classArmId]'";
@@ -129,6 +129,7 @@ include '../Includes/session.php';
                                  <td>".$rows['firstName']."</td>
                                 <td>".$rows['lastName']."</td>
                                 <td>".$rows['otherName']."</td>
+                                <td>".$rows['Lrn']."</td>
                                 <td>".$rows['className']."</td>
                                 <td>".$rows['classArmName']."</td>
                                 <td style='background-color:".$colour."'>".$status."</td>
