@@ -100,15 +100,17 @@ include '../Includes/session.php';
                   <?php
 
                     if(isset($_POST['view'])){
-                      $dateTaken =  $_POST['dateTaken'];
-
-                      $query = "SELECT tblattendance.Id,tblattendance.status,tblattendance.dateTimeTaken,tblclass.className,
-                      tblclassarms.classArmName, tblstudents.firstName,tblstudents.lastName,tblstudents.otherName
-                      FROM tblattendance
-                      INNER JOIN tblclass ON tblclass.Id = tblattendance.classId
-                      INNER JOIN tblclassarms ON tblclassarms.Id = tblattendance.classArmId
-                      INNER JOIN tblstudents ON tblstudents.admissionNumber = tblattendance.admissionNo
-                      where tblattendance.dateTimeTaken = '$dateTaken' and tblattendance.classId = '$_SESSION[classId]' and tblattendance.classArmId = '$_SESSION[classArmId]'";
+                      $dateTaken = $_POST['dateTaken'];
+                      $query = "SELECT tblattendance.Id, tblattendance.status, tblattendance.dateTimeTaken, 
+                                       tblclass.className, tblclassarms.classArmName, 
+                                       tblstudents.firstName, tblstudents.lastName, tblstudents.otherName
+                                FROM tblattendance
+                                INNER JOIN tblclass ON tblclass.Id = tblattendance.classId
+                                INNER JOIN tblclassarms ON tblclassarms.Id = tblattendance.classArmId
+                                INNER JOIN tblstudents ON tblstudents.admissionNumber = tblattendance.admissionNo
+                                WHERE DATE(tblattendance.dateTimeTaken) = '$dateTaken' 
+                                AND tblattendance.classId = '$_SESSION[classId]' 
+                                AND tblattendance.classArmId = '$_SESSION[classArmId]'";
                       $rs = $conn->query($query);
                       $num = $rs->num_rows;
                       $sn=0;
@@ -117,7 +119,9 @@ include '../Includes/session.php';
                       { 
                         while ($rows = $rs->fetch_assoc())
                           {
-                              if($rows['status'] == '1'){$status = "Present"; $colour="#00FF00";}else{$status = "Absent";$colour="#FF0000";}
+                              if($rows['status'] == '1'){$status = "Present"; $colour="#00FF00";}
+                              else if($rows['status'] == '3'){$status = "Late";$colour = "#FFFF99";}
+                              else{$status = "Absent";$colour="#FF0000";}
                              $sn = $sn + 1;
                             echo"
                               <tr>

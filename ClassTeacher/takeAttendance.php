@@ -2,6 +2,7 @@
 <?php 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+date_default_timezone_set('Asia/Manila'); // Set the timezone
 
 include '../Includes/dbcon.php';
 include '../Includes/session.php';
@@ -28,25 +29,30 @@ include '../Includes/session.php';
   
       // Get checked students
       $check = $_POST['check'];
-      $dateTaken = date("Y-m-d"); // Define date
-  
+      $dateTimeTaken = date("Y-m-d h:i A"); // Format: 2025-03-02 08:00 AM
+      $dateTaken = date("Y-m-d", strtotime($dateTimeTaken)); 
+      $timeTaken = date("H:i:s", strtotime($dateTimeTaken)); // Extract time only
+      
       // Check if attendance is already taken
       $qurty = mysqli_query($conn, "SELECT * FROM tblattendance  
-                                    WHERE classId = '$_SESSION[classId]' 
-                                    AND classArmId = '$_SESSION[classArmId]' 
-                                    AND dateTimeTaken='$dateTaken' 
-                                    AND status = '1'");
+                            WHERE classId = '$_SESSION[classId]' 
+                            AND classArmId = '$_SESSION[classArmId]' 
+                            AND DATE(dateTimeTaken) = '$dateTaken' 
+                            AND (status = '1' OR status = '3')");
+
       $count = mysqli_num_rows($qurty);
-  
-
+      
+      $lateTime = "14:39:00"; // Define the threshold time for being late
+      
       foreach ($check as $admissionNumber) {
-          // Insert attendance record or update if exists
+          $status = (strtotime($timeTaken) > strtotime($lateTime)) ? 3 : 1;
+      
           $sql = "INSERT INTO tblattendance (admissionNo, classId, classArmId, dateTimeTaken, status) 
-                  VALUES ('$admissionNumber', '$_SESSION[classId]', '$_SESSION[classArmId]', '$dateTaken', '1')
-                  ON DUPLICATE KEY UPDATE status='1'";
-
+                  VALUES ('$admissionNumber', '$_SESSION[classId]', '$_SESSION[classArmId]', '$dateTimeTaken', '$status')
+                  ON DUPLICATE KEY UPDATE status='$status'";
+      
           $qquery = mysqli_query($conn, $sql);
-
+      
           if (!$qquery) {
               echo "<div class='alert alert-danger' style='margin-right:700px;'>Error: " . mysqli_error($conn) . "</div>";
           }
@@ -58,13 +64,16 @@ include '../Includes/session.php';
 
   if(isset($_POST['lock'])){
     
-    $dateTaken = date("Y-m-d"); // Define today's date
+    $dateTaken = date("Y-m-d h:i A"); 
+    $onlyDate = date("Y-m-d", strtotime($dateTaken)); 
+
     $classId = $_SESSION['classId'];
     $classArmId = $_SESSION['classArmId'];
 
     if (!$conn) {
         die("Database connection error: " . mysqli_connect_error());
     }
+
     $query = "SELECT admissionNumber FROM tblstudents 
               WHERE classId = '$classId' 
               AND classArmId = '$classArmId' 
@@ -72,8 +81,9 @@ include '../Includes/session.php';
                   SELECT admissionNo FROM tblattendance 
                   WHERE classId = '$classId' 
                   AND classArmId = '$classArmId' 
-                  AND dateTimeTaken = '$dateTaken'
+                  AND DATE(dateTimeTaken) = '$onlyDate'
               )";
+
 
     $result = mysqli_query($conn, $query);
 
@@ -100,7 +110,7 @@ include '../Includes/session.php';
 
 
 //check if the attendance has not been taken i.e if no record has a status of 1
-$dateTaken = date("Y-m-d"); // Format: YYYY-MM-DD
+  $dateTaken = date("Y-m-d h:i A"); // Format: 2025-03-02 08:00 AM
   $qurty=mysqli_query($conn,"select * from tblattendance  where classId = '$_SESSION[classId]' and classArmId = '$_SESSION[classArmId]' and dateTimeTaken='$dateTaken' and status = '1'");
   $count = mysqli_num_rows($qurty);
   $statusMsg = "<div></div>";
@@ -221,22 +231,22 @@ $dateTaken = date("Y-m-d"); // Format: YYYY-MM-DD
                     <tbody>
 
                   <?php
-                      $dateTaken = date("Y-m-d");
-                      echo "<script>console.log('Error: " . $dateTaken . "');</script>";
+                      $dateTaken = date("Y-m-d"); // Format: 2025-03-02 (Only Date)
                       $query = "SELECT tblstudents.Id, tblstudents.admissionNumber, tblclass.className, 
-                      tblclass.Id AS classId, tblclassarms.classArmName, 
-                      tblclassarms.Id AS classArmId, tblstudents.firstName, 
-                      tblstudents.lastName, tblstudents.otherName, tblstudents.dateCreated
-                      FROM tblstudents
-                      INNER JOIN tblclass ON tblclass.Id = tblstudents.classId
-                      INNER JOIN tblclassarms ON tblclassarms.Id = tblstudents.classArmId
-                      LEFT JOIN tblattendance ON tblattendance.admissionNo = tblstudents.admissionNumber 
-                              AND tblattendance.dateTimeTaken = '$dateTaken'
-                      where tblstudents.classId = '$_SESSION[classId]' AND 
-                      tblstudents.classArmId = '$_SESSION[classArmId]' AND 
-                      tblattendance.admissionNo IS NULL";
+                                       tblclass.Id AS classId, tblclassarms.classArmName, 
+                                       tblclassarms.Id AS classArmId, tblstudents.firstName, 
+                                       tblstudents.lastName, tblstudents.otherName, tblstudents.dateCreated
+                                FROM tblstudents
+                                INNER JOIN tblclass ON tblclass.Id = tblstudents.classId
+                                INNER JOIN tblclassarms ON tblclassarms.Id = tblstudents.classArmId
+                                LEFT JOIN tblattendance ON tblattendance.admissionNo = tblstudents.admissionNumber 
+                                                         AND DATE(tblattendance.dateTimeTaken) = '$dateTaken'
+                                WHERE tblstudents.classId = '$_SESSION[classId]' 
+                                AND tblstudents.classArmId = '$_SESSION[classArmId]' 
+                                AND tblattendance.admissionNo IS NULL";
+                      
                       $rs = $conn->query($query);
-                      $num = $rs->num_rows;
+                      $num = $rs->num_rows;                      
                       $sn=0;
                       $status="";
                       if($num > 0)

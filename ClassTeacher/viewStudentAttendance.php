@@ -173,33 +173,40 @@ include '../Includes/session.php';
                        }
                        if($type == "2"){ //Single Date Attendance
 
-                        $singleDate =  $_POST['singleDate'];
+                        $singleDate = $_POST['singleDate']; // Expected format: YYYY-MM-DD
 
-                         $query = "SELECT tblattendance.Id,tblattendance.status,tblattendance.dateTimeTaken,tblclass.className,
-                        tblclassarms.classArmName,
-                        tblstudents.firstName,tblstudents.lastName,tblstudents.otherName,tblstudents.admissionNumber
-                        FROM tblattendance
-                        INNER JOIN tblclass ON tblclass.Id = tblattendance.classId
-                        INNER JOIN tblclassarms ON tblclassarms.Id = tblattendance.classArmId
-                        INNER JOIN tblstudents ON tblstudents.admissionNumber = tblattendance.admissionNo
-                        where tblattendance.dateTimeTaken = '$singleDate' and tblattendance.admissionNo = '$admissionNumber' and tblattendance.classId = '$_SESSION[classId]' and tblattendance.classArmId = '$_SESSION[classArmId]'";
+                        $query = "SELECT tblattendance.Id, tblattendance.status, tblattendance.dateTimeTaken, 
+                                         tblclass.className, tblclassarms.classArmName,
+                                         tblstudents.firstName, tblstudents.lastName, tblstudents.otherName, tblstudents.admissionNumber
+                                  FROM tblattendance
+                                  INNER JOIN tblclass ON tblclass.Id = tblattendance.classId
+                                  INNER JOIN tblclassarms ON tblclassarms.Id = tblattendance.classArmId
+                                  INNER JOIN tblstudents ON tblstudents.admissionNumber = tblattendance.admissionNo
+                                  WHERE DATE(tblattendance.dateTimeTaken) = '$singleDate' 
+                                  AND tblattendance.admissionNo = '$admissionNumber' 
+                                  AND tblattendance.classId = '$_SESSION[classId]' 
+                                  AND tblattendance.classArmId = '$_SESSION[classArmId]'";
+                        
+                        $rs = $conn->query($query);
                         
 
                        }
                        if($type == "3"){ //Date Range Attendance
 
-                         $fromDate =  $_POST['fromDate'];
-                         $toDate =  $_POST['toDate'];
-
-                         $query = "SELECT tblattendance.Id,tblattendance.status,tblattendance.dateTimeTaken,tblclass.className,
-                        tblclassarms.classArmName,
-                        tblstudents.firstName,tblstudents.lastName,tblstudents.otherName,tblstudents.admissionNumber
-                        FROM tblattendance
-                        INNER JOIN tblclass ON tblclass.Id = tblattendance.classId
-                        INNER JOIN tblclassarms ON tblclassarms.Id = tblattendance.classArmId
-                        INNER JOIN tblstudents ON tblstudents.admissionNumber = tblattendance.admissionNo
-                        where tblattendance.dateTimeTaken between '$fromDate' and '$toDate' and tblattendance.admissionNo = '$admissionNumber' and tblattendance.classId = '$_SESSION[classId]' and tblattendance.classArmId = '$_SESSION[classArmId]'";
+                        $fromDate = $_POST['fromDate'];
+                        $toDate = $_POST['toDate'];    
                         
+                        $query = "SELECT tblattendance.Id, tblattendance.status, tblattendance.dateTimeTaken, 
+                                         tblclass.className, tblclassarms.classArmName,
+                                         tblstudents.firstName, tblstudents.lastName, tblstudents.otherName, tblstudents.admissionNumber
+                                  FROM tblattendance
+                                  INNER JOIN tblclass ON tblclass.Id = tblattendance.classId
+                                  INNER JOIN tblclassarms ON tblclassarms.Id = tblattendance.classArmId
+                                  INNER JOIN tblstudents ON tblstudents.admissionNumber = tblattendance.admissionNo
+                                  WHERE DATE(tblattendance.dateTimeTaken) BETWEEN '$fromDate' AND '$toDate'
+                                  AND tblattendance.admissionNo = '$admissionNumber' 
+                                  AND tblattendance.classId = '$_SESSION[classId]' 
+                                  AND tblattendance.classArmId = '$_SESSION[classArmId]'";
                        }
 
                       $rs = $conn->query($query);
