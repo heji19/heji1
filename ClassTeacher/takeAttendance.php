@@ -173,7 +173,131 @@ include '../Includes/session.php';
         xmlhttp.open("GET","ajaxClassArms2.php?cid="+str,true);
         xmlhttp.send();
     }
-}
+  }
+
+    async function callFastAPI(attendanceData) {
+      const apiUrl = "http://127.0.0.1:8000/detect-face/"; 
+
+      const params = new URLSearchParams(attendanceData).toString();
+      const fullUrl = `${apiUrl}?${params}`;
+
+      try {
+          const response = await fetch(fullUrl, {
+              method: "GET",
+              headers: {
+                  "Content-Type": "application/json",
+              },
+          });
+
+          const result = await response.json();
+          handleFastAPIResponse(result); 
+      } catch (error) {
+          console.error("Error calling FastAPI:", error);
+          showNotification("Server Error", "Could not connect to the FastAPI server.", "danger");
+      }
+  }
+
+
+  function handleFastAPIResponse(response) {
+    console.log("Response from FastAPI:", response);
+
+    if (response.status === "success") {
+        const admissionNumber = response.student_id; 
+
+        // Get current time
+        const now = new Date();
+        const dateTimeTaken = now.toISOString().slice(0, 19).replace("T", " "); // "YYYY-MM-DD HH:MM:SS"
+        const dateTaken = now.toISOString().slice(0, 10); // "YYYY-MM-DD"
+        const timeTaken = now.toTimeString().slice(0, 8); // "HH:MM:SS"
+
+        // Late threshold time (Adjust based on school rules)
+        const lateTime = "14:39:00";
+        const status = timeTaken > lateTime ? 3 : 1;
+
+        // Call PHP script to update the database
+        fetch("record_attendance.php", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: `admissionNumber=${admissionNumber}&dateTimeTaken=${dateTimeTaken}&status=${status}`
+        })
+        .then(response => response.text())
+        .then(data => {
+            console.log("Server Response:", data);
+            showNotification("Attendance Recorded", `Student ID: ${admissionNumber} - Status: ${status == 1 ? "Present" : "Late"}`, "success");
+            document.getElementById("statusMsg").innerHTML = `<div class='alert alert-success'>Attendance recorded successfully for Student ${admissionNumber}!</div>`;
+        })
+          .catch(error => {
+              console.error("Error updating attendance:", error);
+              document.getElementById("statusMsg").innerHTML = `<div class='alert alert-danger'>Error updating attendance.</div>`;
+          });
+
+      } else if (response.status === "failed") {
+          document.getElementById("statusMsg").innerHTML = `<div class='alert alert-danger'>No Match Found!</div>`;
+      } else {
+          document.getElementById("statusMsg").innerHTML = `<div class='alert alert-danger'>An error occurred!</div>`;
+      }
+  }
+
+
+
+    function showNotification(title, message, type) {
+        const notification = document.createElement("div");
+        notification.className = `alert alert-${type}`;
+        notification.innerHTML = `<strong>${title}:</strong> ${message}`;
+        notification.style.position = "fixed";
+        notification.style.top = "20px";
+        notification.style.right = "20px";
+        notification.style.zIndex = "9999";
+        notification.style.padding = "10px";
+        notification.style.borderRadius = "5px";
+        notification.style.boxShadow = "0px 0px 10px rgba(0, 0, 0, 0.2)";
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 5000);
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+    const form = document.forms["attendanceForm"]; // Get form by name
+
+    if (!form) {
+        console.error("Form not found!");
+        return; 
+    }
+
+        form.addEventListener("submit", function (event) {
+            const clickedButton = event.submitter; 
+
+            console.log("Clicked button:", clickedButton ? clickedButton.name : "None"); // Debugging
+
+            if (clickedButton && clickedButton.name === "photo") {
+                event.preventDefault(); 
+                console.log("Photo attendance button clicked!"); // Ensure this appears in the console
+
+                const formData = new FormData(form);
+                const attendanceData = {
+                    students: [],
+                    classId: "<?php echo $_SESSION['classId']; ?>",
+                    classArmId: "<?php echo $_SESSION['classArmId']; ?>",
+                    dateTaken: "<?php echo date('Y-m-d'); ?>",
+                };
+
+                formData.getAll("check[]").forEach(admissionNumber => {
+                    attendanceData.students.push({
+                        admissionNumber: admissionNumber,
+                        status: 1, 
+                    });
+                });
+
+                console.log("Sending data to FastAPI:", attendanceData); // Debugging
+                callFastAPI(attendanceData); 
+            }
+        });
+    });
 </script>
 </head>
 
@@ -204,7 +328,7 @@ include '../Includes/session.php';
 
 
               <!-- Input Group -->
-        <form method="post">
+        <form method="post" name="attendanceForm">
             <div class="row">
               <div class="col-lg-12">
               <div class="card mb-4">
@@ -213,7 +337,7 @@ include '../Includes/session.php';
                   <h6 class="m-0 font-weight-bold text-danger">Note: <i>Click on the checkboxes besides each student to take attendance!</i></h6>
                 </div>
                 <div class="table-responsive p-3">
-                <?php echo $statusMsg;?>
+                <div id="statusMsg"><?php echo $statusMsg; ?></div>
                   <table class="table align-items-center table-flush table-hover">
                     <thead class="thead-light">
                       <tr>
@@ -281,6 +405,7 @@ include '../Includes/session.php';
                   </table>
                   <br>
                   <button type="submit" name="save" class="btn btn-primary">Take Attendance</button>
+                  <button type="submit" name="photo" class="btn btn-primary">Photo Attendance</button>
                   <button type="submit" name="lock" class="btn btn-danger">Lock Attendance</button>
                   </form>
                 </div>
