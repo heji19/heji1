@@ -17,7 +17,7 @@ include '../Includes/session.php';
     $rs = $conn->query($query);
     $num = $rs->num_rows;
     $rrw = $rs->fetch_assoc();
-
+    $statusMsg = "";
 
     if(isset($_POST['save'])){
     
@@ -41,24 +41,22 @@ include '../Includes/session.php';
                             AND (status = '1' OR status = '3')");
 
       $count = mysqli_num_rows($qurty);
-      
       $lateTime = "14:39:00"; // Define the threshold time for being late
       
       foreach ($check as $admissionNumber) {
           $status = (strtotime($timeTaken) > strtotime($lateTime)) ? 3 : 1;
       
-          $sql = "INSERT INTO tblattendance (admissionNo, classId, classArmId, dateTimeTaken, status) 
+          $sql = "INSERT INTO tblattendance (Lrn, classId, classArmId, dateTimeTaken, status) 
                   VALUES ('$admissionNumber', '$_SESSION[classId]', '$_SESSION[classArmId]', '$dateTimeTaken', '$status')
                   ON DUPLICATE KEY UPDATE status='$status'";
       
           $qquery = mysqli_query($conn, $sql);
-      
+
           if (!$qquery) {
               echo "<div class='alert alert-danger' style='margin-right:700px;'>Error: " . mysqli_error($conn) . "</div>";
           }
       }
-
-      // echo "<div class='alert alert-success' style='margin-right:700px;'>Attendance Taken Successfully!</div>";
+      $statusMsg = "<div class='alert alert-success'  style='margin-right:700px;'>Attendance Taken Successfully!</div>";
       
   }
 
@@ -74,11 +72,11 @@ include '../Includes/session.php';
         die("Database connection error: " . mysqli_connect_error());
     }
 
-    $query = "SELECT admissionNumber FROM tblstudents 
+    $query = "SELECT Lrn FROM tblstudents 
               WHERE classId = '$classId' 
               AND classArmId = '$classArmId' 
-              AND admissionNumber NOT IN (
-                  SELECT admissionNo FROM tblattendance 
+              AND Lrn NOT IN (
+                  SELECT Lrn FROM tblattendance 
                   WHERE classId = '$classId' 
                   AND classArmId = '$classArmId' 
                   AND DATE(dateTimeTaken) = '$onlyDate'
@@ -91,10 +89,10 @@ include '../Includes/session.php';
         die("<div class='alert alert-danger'>Error fetching students: " . mysqli_error($conn) . "</div>");
     }
     while ($row = mysqli_fetch_assoc($result)) {
-        $admissionNumber = $row['admissionNumber'];
+        $Lrn = $row['Lrn'];
 
-        $sql = "INSERT INTO tblattendance (admissionNo, classId, classArmId, dateTimeTaken, status) 
-                VALUES ('$admissionNumber', '$classId', '$classArmId', '$dateTaken', '2')";
+        $sql = "INSERT INTO tblattendance (Lrn, classId, classArmId, dateTimeTaken, status) 
+                VALUES ('$Lrn', '$classId', '$classArmId', '$dateTaken', '2')";
 
         $insertQuery = mysqli_query($conn, $sql);
 
@@ -106,32 +104,6 @@ include '../Includes/session.php';
     echo "<div class='alert alert-success'>Absent students recorded successfully!</div>";
     
 }
-  
-
-
-//check if the attendance has not been taken i.e if no record has a status of 1
-  $dateTaken = date("Y-m-d h:i A"); // Format: 2025-03-02 08:00 AM
-  $qurty=mysqli_query($conn,"select * from tblattendance  where classId = '$_SESSION[classId]' and classArmId = '$_SESSION[classArmId]' and dateTimeTaken='$dateTaken' and status = '1'");
-  $count = mysqli_num_rows($qurty);
-  $statusMsg = "<div></div>";
-  for($i = 0; $i < $count; $i++)
-  {
-          // $Lrn[$i]; //admission Number
-          if(isset($check[$i])) //the checked checkboxes
-          {
-            $qquery=mysqli_query($conn, "UPDATE tblattendance SET status='1' WHERE admissionNo='$check[$i]'");
-
-
-                if ($qquery) {
-                    $statusMsg = "<div class='alert alert-success'  style='margin-right:700px;'>Attendance Taken Successfully!</div>";
-                }
-                else
-                {
-                    $statusMsg = "<div class='alert alert-danger' style='margin-right:700px;'>An error Occurred!</div>";
-                }
-            
-          }
-    }
 
 ?>
 
@@ -202,7 +174,7 @@ include '../Includes/session.php';
     console.log("Response from FastAPI:", response);
 
     if (response.status === "success") {
-        const admissionNumber = response.student_id; 
+        const Lrn = response.student_id; 
 
         // Get current time
         const now = new Date();
@@ -220,13 +192,13 @@ include '../Includes/session.php';
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded",
             },
-            body: `admissionNumber=${admissionNumber}&dateTimeTaken=${dateTimeTaken}&status=${status}`
+            body: `Lrn=${Lrn}&dateTimeTaken=${dateTimeTaken}&status=${status}`
         })
         .then(response => response.text())
         .then(data => {
             console.log("Server Response:", data);
-            showNotification("Attendance Recorded", `Student ID: ${admissionNumber} - Status: ${status == 1 ? "Present" : "Late"}`, "success");
-            document.getElementById("statusMsg").innerHTML = `<div class='alert alert-success'>Attendance recorded successfully for Student ${admissionNumber}!</div>`;
+            showNotification("Attendance Recorded", `Student ID: ${Lrn} - Status: ${status == 1 ? "Present" : "Late"}`, "success");
+            document.getElementById("statusMsg").innerHTML = `<div class='alert alert-success'>Attendance recorded successfully for Student ${Lrn}!</div>`;
         })
           .catch(error => {
               console.error("Error updating attendance:", error);
@@ -286,9 +258,9 @@ include '../Includes/session.php';
                     dateTaken: "<?php echo date('Y-m-d'); ?>",
                 };
 
-                formData.getAll("check[]").forEach(admissionNumber => {
+                formData.getAll("check[]").forEach(Lrn => {
                     attendanceData.students.push({
-                        admissionNumber: admissionNumber,
+                        Lrn: Lrn,
                         status: 1, 
                     });
                 });
@@ -345,7 +317,7 @@ include '../Includes/session.php';
                         <th>First Name</th>
                         <th>Last Name</th>
                         <th>Other Name</th>
-                        <th>Admission Number</th>
+                        <th>Lrn</th>
                         <th>Class</th>
                         <th>Class Arm</th>
                         <th>Check</th>
@@ -356,18 +328,18 @@ include '../Includes/session.php';
 
                   <?php
                       $dateTaken = date("Y-m-d"); // Format: 2025-03-02 (Only Date)
-                      $query = "SELECT tblstudents.Id, tblstudents.admissionNumber, tblclass.className, 
+                      $query = "SELECT tblstudents.Id, tblstudents.Lrn, tblclass.className, 
                                        tblclass.Id AS classId, tblclassarms.classArmName, 
                                        tblclassarms.Id AS classArmId, tblstudents.firstName, 
                                        tblstudents.lastName, tblstudents.otherName, tblstudents.dateCreated
                                 FROM tblstudents
                                 INNER JOIN tblclass ON tblclass.Id = tblstudents.classId
                                 INNER JOIN tblclassarms ON tblclassarms.Id = tblstudents.classArmId
-                                LEFT JOIN tblattendance ON tblattendance.admissionNo = tblstudents.admissionNumber 
+                                LEFT JOIN tblattendance ON tblattendance.Lrn = tblstudents.Lrn 
                                                          AND DATE(tblattendance.dateTimeTaken) = '$dateTaken'
                                 WHERE tblstudents.classId = '$_SESSION[classId]' 
                                 AND tblstudents.classArmId = '$_SESSION[classArmId]' 
-                                AND tblattendance.admissionNo IS NULL";
+                                AND tblattendance.Lrn IS NULL";
                       
                       $rs = $conn->query($query);
                       $num = $rs->num_rows;                      
@@ -384,12 +356,12 @@ include '../Includes/session.php';
                                 <td>".$rows['firstName']."</td>
                                 <td>".$rows['lastName']."</td>
                                 <td>".$rows['otherName']."</td>
-                                <td>".$rows['admissionNumber']."</td>
+                                <td>".$rows['Lrn']."</td>
                                 <td>".$rows['className']."</td>
                                 <td>".$rows['classArmName']."</td>
-                                <td><input name='check[]' type='checkbox' value=".$rows['admissionNumber']." class='form-control'></td>
+                                <td><input name='check[]' type='checkbox' value=".$rows['Lrn']." class='form-control'></td>
                               </tr>";
-                              echo "<input name='admissionNumber[]' value=".$rows['admissionNumber']." type='hidden' class='form-control'>";
+                              echo "<input name='Lrn[]' value=".$rows['Lrn']." type='hidden' class='form-control'>";
                           }
                       }
                       else

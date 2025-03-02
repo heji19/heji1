@@ -107,7 +107,7 @@ include '../Includes/session.php';
                                 FROM tblattendance
                                 INNER JOIN tblclass ON tblclass.Id = tblattendance.classId
                                 INNER JOIN tblclassarms ON tblclassarms.Id = tblattendance.classArmId
-                                INNER JOIN tblstudents ON tblstudents.admissionNumber = tblattendance.admissionNo
+                                INNER JOIN tblstudents ON tblstudents.Lrn = tblattendance.Lrn
                                 WHERE DATE(tblattendance.dateTimeTaken) = '$dateTaken' 
                                 AND tblattendance.classId = '$_SESSION[classId]' 
                                 AND tblattendance.classArmId = '$_SESSION[classArmId]'";

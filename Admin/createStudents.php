@@ -12,12 +12,12 @@ if(isset($_POST['save'])){
   $lastName=$_POST['lastName'];
   $otherName=$_POST['otherName'];
 
-  $admissionNumber=$_POST['admissionNumber'];
+  $Lrn=$_POST['Lrn'];
   $classId=$_POST['classId'];
   $classArmId=$_POST['classArmId'];
   $dateCreated = date("Y-m-d");
    
-    $query=mysqli_query($conn,"select * from tblstudents where admissionNumber ='$admissionNumber'");
+    $query=mysqli_query($conn,"select * from tblstudents where Lrn ='$Lrn'");
     $ret=mysqli_fetch_array($query);
 
     if($ret > 0){ 
@@ -26,8 +26,8 @@ if(isset($_POST['save'])){
     }
     else{
 
-    $query=mysqli_query($conn,"insert into tblstudents(firstName,lastName,otherName,admissionNumber,password,classId,classArmId,dateCreated) 
-    value('$firstName','$lastName','$otherName','$admissionNumber','12345','$classId','$classArmId','$dateCreated')");
+    $query=mysqli_query($conn,"insert into tblstudents(firstName,lastName,otherName,Lrn,password,classId,classArmId,dateCreated) 
+    value('$firstName','$lastName','$otherName','$Lrn','12345','$classId','$classArmId','$dateCreated')");
 
     if ($query) {
         
@@ -65,13 +65,13 @@ if(isset($_POST['save'])){
   $lastName=$_POST['lastName'];
   $otherName=$_POST['otherName'];
 
-  $admissionNumber=$_POST['admissionNumber'];
+  $Lrn=$_POST['Lrn'];
   $classId=$_POST['classId'];
   $classArmId=$_POST['classArmId'];
   $dateCreated = date("Y-m-d");
 
  $query=mysqli_query($conn,"update tblstudents set firstName='$firstName', lastName='$lastName',
-    otherName='$otherName', admissionNumber='$admissionNumber',password='12345', classId='$classId',classArmId='$classArmId'
+    otherName='$otherName', Lrn='$Lrn',password='12345', classId='$classId',classArmId='$classArmId'
     where Id='$Id'");
             if ($query) {
                 
@@ -201,8 +201,8 @@ if(isset($_POST['save'])){
                         <input type="text" class="form-control" name="otherName" value="<?php echo $row['otherName'];?>" id="exampleInputFirstName" >
                         </div>
                         <div class="col-xl-6">
-                        <label class="form-control-label">Admission Number<span class="text-danger ml-2">*</span></label>
-                      <input type="text" class="form-control" required name="admissionNumber" value="<?php echo $row['admissionNumber'];?>" id="exampleInputFirstName" >
+                        <label class="form-control-label">Lrn<span class="text-danger ml-2">*</span></label>
+                      <input type="text" class="form-control" required name="Lrn" value="<?php echo $row['Lrn'];?>" id="exampleInputFirstName" >
                         </div>
                     </div>
                     <div class="form-group row mb-3">
@@ -261,7 +261,7 @@ if(isset($_POST['save'])){
                         <th>First Name</th>
                         <th>Last Name</th>
                         <th>Other Name</th>
-                        <th>Admission Number</th>
+                        <th>Lrn</th>
                         <th>Class</th>
                         <th>Class Arm</th>
                         <th>Date Created</th>
@@ -274,7 +274,7 @@ if(isset($_POST['save'])){
 
                   <?php
                       $query = "SELECT tblstudents.Id,tblclass.className,tblclassarms.classArmName,tblclassarms.Id AS classArmId,tblstudents.firstName,
-                      tblstudents.lastName,tblstudents.otherName,tblstudents.admissionNumber,tblstudents.dateCreated
+                      tblstudents.lastName,tblstudents.otherName,tblstudents.Lrn,tblstudents.dateCreated
                       FROM tblstudents
                       INNER JOIN tblclass ON tblclass.Id = tblstudents.classId
                       INNER JOIN tblclassarms ON tblclassarms.Id = tblstudents.classArmId";
@@ -293,7 +293,7 @@ if(isset($_POST['save'])){
                                 <td>".$rows['firstName']."</td>
                                 <td>".$rows['lastName']."</td>
                                 <td>".$rows['otherName']."</td>
-                                <td>".$rows['admissionNumber']."</td>
+                                <td>".$rows['Lrn']."</td>
                                 <td>".$rows['className']."</td>
                                 <td>".$rows['classArmName']."</td>
                                  <td>".$rows['dateCreated']."</td>
