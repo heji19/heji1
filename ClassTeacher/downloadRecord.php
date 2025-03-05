@@ -24,21 +24,24 @@ $filename="Attendance list";
 $dateTaken = date("Y-m-d");
 
 $cnt=1;			
-$ret = mysqli_query($conn,"SELECT tblattendance.Id,tblattendance.status,tblattendance.dateTimeTaken,tblclass.className,
-        tblclassarms.classArmName,
-        tblstudents.firstName,tblstudents.lastName,tblstudents.otherName,tblstudents.Lrn
+$ret = mysqli_query($conn,"SELECT tblattendance.Id, tblattendance.status, tblattendance.dateTimeTaken, 
+        tblclass.className, tblclassarms.classArmName, 
+        tblstudents.firstName, tblstudents.lastName, tblstudents.otherName, tblstudents.Lrn
         FROM tblattendance
         INNER JOIN tblclass ON tblclass.Id = tblattendance.classId
         INNER JOIN tblclassarms ON tblclassarms.Id = tblattendance.classArmId
         INNER JOIN tblstudents ON tblstudents.Lrn = tblattendance.Lrn
-        where tblattendance.dateTimeTaken = '$dateTaken' and tblattendance.classId = '$_SESSION[classId]' and tblattendance.classArmId = '$_SESSION[classArmId]'");
+        WHERE DATE(tblattendance.dateTimeTaken) = '$dateTaken' 
+        AND tblattendance.classId = '$_SESSION[classId]' 
+        AND tblattendance.classArmId = '$_SESSION[classArmId]'");
 
 if(mysqli_num_rows($ret) > 0 )
 {
 while ($row=mysqli_fetch_array($ret)) 
 { 
-    
-    if($row['status'] == '1'){$status = "Present"; $colour="#00FF00";}else{$status = "Absent";$colour="#FF0000";}
+    if($row['status'] === '1'){$status = "Present";}
+    else if($row['status'] === '3'){$status = "Late";}
+    else{$status = "Absent";}
 
 echo '  
 <tr>  
