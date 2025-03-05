@@ -147,27 +147,7 @@ include '../Includes/session.php';
     }
   }
 
-    async function callFastAPI(attendanceData) {
-      const apiUrl = "http://127.0.0.1:8000/detect-face/"; 
-
-      const params = new URLSearchParams(attendanceData).toString();
-      const fullUrl = `${apiUrl}?${params}`;
-
-      try {
-          const response = await fetch(fullUrl, {
-              method: "GET",
-              headers: {
-                  "Content-Type": "application/json",
-              },
-          });
-
-          const result = await response.json();
-          handleFastAPIResponse(result); 
-      } catch (error) {
-          console.error("Error calling FastAPI:", error);
-          showNotification("Server Error", "Could not connect to the FastAPI server.", "danger");
-      }
-  }
+    
 
 
   function handleFastAPIResponse(response) {
@@ -176,18 +156,15 @@ include '../Includes/session.php';
     if (response.status === "success") {
         const Lrn = response.student_id; 
 
-        // Get current time
         const now = new Date();
-        const dateTimeTaken = now.toISOString().slice(0, 19).replace("T", " "); // "YYYY-MM-DD HH:MM:SS"
-        const dateTaken = now.toISOString().slice(0, 10); // "YYYY-MM-DD"
-        const timeTaken = now.toTimeString().slice(0, 8); // "HH:MM:SS"
+        const dateTimeTaken = now.toISOString().slice(0, 19).replace("T", " ");
+        const dateTaken = now.toISOString().slice(0, 10);
+        const timeTaken = now.toTimeString().slice(0, 8);
 
-        // Late threshold time (Adjust based on school rules)
         const lateTime = "14:39:00";
         const status = timeTaken > lateTime ? 3 : 1;
 
-        // Call PHP script to update the database
-        fetch("record_attendance.php", {
+        fetch("recordAttendance.php", {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded",
@@ -234,7 +211,7 @@ include '../Includes/session.php';
     }
 
     document.addEventListener("DOMContentLoaded", function () {
-    const form = document.forms["attendanceForm"]; // Get form by name
+    const form = document.forms["attendanceForm"];
 
     if (!form) {
         console.error("Form not found!");
@@ -244,32 +221,35 @@ include '../Includes/session.php';
         form.addEventListener("submit", function (event) {
             const clickedButton = event.submitter; 
 
-            console.log("Clicked button:", clickedButton ? clickedButton.name : "None"); // Debugging
-
+            console.log("Clicked button:", clickedButton ? clickedButton.name : "None"); 
+            event.preventDefault();
             if (clickedButton && clickedButton.name === "photo") {
-                event.preventDefault(); 
-                console.log("Photo attendance button clicked!"); // Ensure this appears in the console
-
-                const formData = new FormData(form);
-                const attendanceData = {
-                    students: [],
-                    classId: "<?php echo $_SESSION['classId']; ?>",
-                    classArmId: "<?php echo $_SESSION['classArmId']; ?>",
-                    dateTaken: "<?php echo date('Y-m-d'); ?>",
-                };
-
-                formData.getAll("check[]").forEach(Lrn => {
-                    attendanceData.students.push({
-                        Lrn: Lrn,
-                        status: 1, 
-                    });
-                });
-
-                console.log("Sending data to FastAPI:", attendanceData); // Debugging
-                callFastAPI(attendanceData); 
+                callFastAPI("/detect-face"); 
+            }else if (clickedButton && clickedButton.name === "qr") {
+                callFastAPI("/scan-qr"); 
             }
         });
     });
+
+    async function callFastAPI(endpoint) {
+      const apiUrl = "http://127.0.0.1:8000" + endpoint; 
+
+      try {
+          const response = await fetch(apiUrl, {
+              method: "GET",
+              headers: {
+                  "Content-Type": "application/json",
+              },
+          });
+
+          const result = await response.json();
+          console.log(result);
+          handleFastAPIResponse(result); 
+      } catch (error) {
+          console.error("Error calling FastAPI:", error);
+          showNotification("Server Error", "Could not connect to the FastAPI server.", "danger");
+      }
+  }
 </script>
 </head>
 
@@ -378,6 +358,7 @@ include '../Includes/session.php';
                   <br>
                   <button type="submit" name="save" class="btn btn-primary">Take Attendance</button>
                   <button type="submit" name="photo" class="btn btn-primary">Photo Attendance</button>
+                  <button type="submit" name="qr" class="btn btn-primary">QR Attendance</button>
                   <button type="submit" name="lock" class="btn btn-danger">Lock Attendance</button>
                   </form>
                 </div>
