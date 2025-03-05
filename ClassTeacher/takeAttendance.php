@@ -222,12 +222,15 @@ include '../Includes/session.php';
             const clickedButton = event.submitter; 
 
             console.log("Clicked button:", clickedButton ? clickedButton.name : "None"); 
-            event.preventDefault();
-            if (clickedButton && clickedButton.name === "photo") {
-                callFastAPI("/detect-face"); 
-            }else if (clickedButton && clickedButton.name === "qr") {
-                callFastAPI("/scan-qr"); 
+            if (clickedButton && (clickedButton.name === "photo" || clickedButton.name === "qr")) {
+            event.preventDefault(); // Prevent default only for these buttons
+            
+            if (clickedButton.name === "photo") {
+                callFastAPI("/detect-face");
+            } else if (clickedButton.name === "qr") {
+                callFastAPI("/scan-qr");
             }
+        }
         });
     });
 
